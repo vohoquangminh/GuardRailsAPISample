@@ -1,1 +1,1 @@
-A simple Python project that various GuardRails API (https://docs.guardrails.io/docs/category/api) functionalities & data manipulation to generate a vulnerabilities report of selected repository (in CSV format)
+A simple Python project that utilizes various GuardRails API (https://docs.guardrails.io/docs/category/api) functionalities & data manipulation to generate a vulnerabilities report of selected repository (in CSV format)
