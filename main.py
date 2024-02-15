@@ -20,57 +20,58 @@ try:
     response = requests.post(url=f'{GR_API_ENDPOINT}/auth', headers=headers, data=json.dumps(payload))
     response.raise_for_status()
     response_json = response.json()
+    JWT = response_json['jwtToken']
 except requests.exceptions.RequestException as e:
     print('An error occurred:', str(e))
-
-JWT = response_json['jwtToken']
+    exit()
 
 # Header including JWT for all API requests
 headers = {
     'Authorization': 'bearer ' + JWT
 }
 
+
+# Function to handle API requests
+def make_api_request(url, params=None):
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print('An error occurred:', str(e))
+        return None
+
+
 # Accounts (Organizations)
-try:
-    response = requests.get(url=f'{GR_API_ENDPOINT}/accounts', headers=headers)
-    response.raise_for_status()
-    accounts_info = response.json()
-except requests.exceptions.RequestException as e:
-    print('An error occurred:', str(e))
+accounts_info = make_api_request(f'{GR_API_ENDPOINT}/accounts')
+if not accounts_info:
+    exit()
 
 print('### List of Organizations ###')
 for account in accounts_info[f'{PROVIDER}']:
     print(f'{account["idAccount"]} - {account["login"]}')
 selected_accountId = input('Please select AccountId: ')
-for account in accounts_info[f'{PROVIDER}']:
-    if account['idAccount'] == int(selected_accountId):
-        global selected_accountName
-        selected_accountName = account['login']
+selected_accountName = next(
+    (account['login'] for account in accounts_info[f'{PROVIDER}'] if account['idAccount'] == int(selected_accountId)),
+    None)
 
 # Repos
-try:
-    response = requests.get(url=f'{GR_API_ENDPOINT}/repositories?accountId={selected_accountId}', headers=headers)
-    response.raise_for_status()
-    repos_info = response.json()
-except requests.exceptions.RequestException as e:
-    print('An error occurred:', str(e))
+repos_info = make_api_request(f'{GR_API_ENDPOINT}/repositories?accountId={selected_accountId}')
+if not repos_info:
+    exit()
 
 print('### List of Repositories ###')
 for repo in repos_info['repositories']:
     print(f'{repo["idRepository"]} - {repo["name"]}')
 selected_repoId = input('Please select RepositoryId: ')
-for repo in repos_info['repositories']:
-    if repo['idRepository'] == int(selected_repoId):
-        global selected_repoName
-        selected_repoName = repo['name']
+selected_repoName = next(
+    (repo['name'] for repo in repos_info['repositories'] if repo['idRepository'] == int(selected_repoId)), None)
 
 # Rules
-try:
-    response = requests.get(url=f'{GR_API_ENDPOINT}/findings?accountId={selected_accountId}&repositoryIds={selected_repoId}', headers=headers)
-    response.raise_for_status()
-    rules_info = response.json()
-except requests.exceptions.RequestException as e:
-    print('An error occurred:', str(e))
+rules_info = make_api_request(
+    f'{GR_API_ENDPOINT}/findings?accountId={selected_accountId}&repositoryIds={selected_repoId}')
+if not rules_info:
+    exit()
 
 rulesId_list = [rule['rule']['idRule'] for rule in rules_info['data']]
 rulesTitle_list = [rule['rule']['title'] for rule in rules_info['data']]
@@ -79,12 +80,9 @@ rulesVul_list = [rule['count']['total'] for rule in rules_info['data']]
 # Vulnerabilities
 data = pd.DataFrame()
 for ruleId in rulesId_list:
-    try:
-        response = requests.get(url=f'{GR_API_ENDPOINT}/findings/{ruleId}?accountId={selected_accountId}&repositoryIds={selected_repoId}', headers=headers)
-        response.raise_for_status()
-        vulns_info = response.json()
-    except requests.exceptions.RequestException as e:
-        print('An error occurred:', str(e))
-    data = data._append(pd.DataFrame(vulns_info), ignore_index=True)
+    vulns_info = make_api_request(
+        f'{GR_API_ENDPOINT}/findings/{ruleId}?accountId={selected_accountId}&repositoryIds={selected_repoId}')
+    if vulns_info:
+        data = data._append(pd.DataFrame(vulns_info), ignore_index=True)
 
 data.to_csv(f'{selected_accountName}_{selected_repoName}_{CURRENT_TIME}.csv')
