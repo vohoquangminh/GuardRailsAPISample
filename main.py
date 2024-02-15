@@ -5,11 +5,10 @@ from datetime import datetime
 
 API_KEY = ''
 GR_API_ENDPOINT = 'https://api.guardrails.io/v2/'
-PROVIDER = 'github' # (github, gitlab, bitbucket, azure)
+PROVIDER = 'github'  # (github, gitlab, bitbucket, azure)
 CURRENT_TIME = datetime.now()
 
 # Exchange API Key for JWT
-
 headers = {
     "Content-Type": "application/json"
 }
@@ -27,11 +26,12 @@ except requests.exceptions.RequestException as e:
 response_json = response.json()
 JWT = response_json["jwtToken"]
 
+# Header including JWT for all API requests
 headers = {
     "Authorization": "bearer " + JWT
 }
 
-# Accounts
+# Accounts (Organizations)
 try:
     response = requests.get(url=f'{GR_API_ENDPOINT}/accounts', headers=headers)
     response.raise_for_status()
@@ -49,7 +49,6 @@ for account in accounts_info[f"{PROVIDER}"]:
         selected_accountName = account['login']
 
 # Repos
-response = requests.get(url=f'{GR_API_ENDPOINT}/repositories?accountId={selected_accountId}', headers=headers)
 try:
     response = requests.get(url=f"{GR_API_ENDPOINT}/repositories?accountId={selected_accountId}", headers=headers)
     response.raise_for_status()
