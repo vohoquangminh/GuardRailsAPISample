@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from datetime import datetime
 
-API_KEY = ''
+API_KEY = '82a923a5-628e-4941-8f2d-739644d26ae7'
 GR_API_ENDPOINT = 'https://api.guardrails.io/v2/'
 PROVIDER = 'github'  # (github, gitlab, bitbucket, azure)
 CURRENT_TIME = datetime.now()
@@ -66,11 +66,12 @@ for repo in repos_info['repositories']:
         selected_repoName = repo['name']
 
 # Rules
-response = requests.get(url=f'{GR_API_ENDPOINT}/findings?accountId={selected_accountId}&repositoryIds={selected_repoId}', headers=headers)
-if response.status_code == 200:
+try:
+    response = requests.get(url=f'{GR_API_ENDPOINT}/findings?accountId={selected_accountId}&repositoryIds={selected_repoId}', headers=headers)
+    response.raise_for_status()
     rules_info = response.json()
-else:
-    print("Error:", response.status_code)
+except requests.exceptions.RequestException as e:
+    print("An error occurred:", str(e))
 
 rulesId_list = [rule["rule"]["idRule"] for rule in rules_info['data']]
 rulesTitle_list = [rule["rule"]["title"] for rule in rules_info['data']]
@@ -79,11 +80,12 @@ rulesVul_list = [rule["count"]["total"] for rule in rules_info['data']]
 # Vulnerabilities
 data = pd.DataFrame()
 for ruleId in rulesId_list:
-    response = requests.get(url=f'{GR_API_ENDPOINT}/findings/{ruleId}?accountId={selected_accountId}&repositoryIds={selected_repoId}', headers=headers)
-    if response.status_code == 200:
+    try:
+        response = requests.get(url=f'{GR_API_ENDPOINT}/findings/{ruleId}?accountId={selected_accountId}&repositoryIds={selected_repoId}', headers=headers)
+        response.raise_for_status()
         vulns_info = response.json()
-    else:
-        print("Error:", response.status_code)
+    except requests.exceptions.RequestException as e:
+        print("An error occurred:", str(e))
     data = data._append(pd.DataFrame(vulns_info), ignore_index=True)
 
 data.to_csv(f"{selected_accountName}_{selected_repoName}_{CURRENT_TIME}.csv")
