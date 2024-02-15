@@ -19,11 +19,10 @@ payload = {
 try:
     response = requests.post(url=f'{GR_API_ENDPOINT}/auth', headers=headers, data=json.dumps(payload))
     response.raise_for_status()
-    accounts_info = response.json()
+    response_json = response.json()
 except requests.exceptions.RequestException as e:
     print("An error occurred:", str(e))
 
-response_json = response.json()
 JWT = response_json["jwtToken"]
 
 # Header including JWT for all API requests
