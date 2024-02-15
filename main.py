@@ -39,7 +39,7 @@ except requests.exceptions.RequestException as e:
     print('An error occurred:', str(e))
 
 print('### List of Organizations ###')
-for account in accounts_info[f"{PROVIDER}"]:
+for account in accounts_info[f'{PROVIDER}']:
     print(f'{account["idAccount"]} - {account["login"]}')
 selected_accountId = input('Please select AccountId: ')
 for account in accounts_info[f'{PROVIDER}']:
