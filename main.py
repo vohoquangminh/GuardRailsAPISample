@@ -3,10 +3,10 @@ import json
 import pandas as pd
 from datetime import datetime
 
-API_KEY = ''  # Generate your API_KEY in the GuardRails Dashboard
+API_KEY = '82a923a5-628e-4941-8f2d-739644d26ae7'  # Generate your API_KEY in the GuardRails Dashboard
 GR_API_ENDPOINT = 'https://api.guardrails.io/v2/'
 PROVIDER = 'github'  # Input your Git Provider information (github, gitlab, bitbucket, azure)
-CURRENT_TIME = datetime.now()
+CURRENT_TIME = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
 # Exchange API Key for JWT
 headers = {
